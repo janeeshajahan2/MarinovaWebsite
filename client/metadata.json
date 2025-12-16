@@ -1,0 +1,8 @@
+{
+  "name": "Copy of  MARINOVA final3",
+  "description": "Real-time weather monitoring and AI analysis for the world's five oceans and global coordinates.",
+  "requestFramePermissions": [
+    "geolocation",
+    "microphone"
+  ]
+}
