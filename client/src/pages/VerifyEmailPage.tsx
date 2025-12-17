@@ -23,7 +23,6 @@ const VerifyEmailPage: React.FC = () => {
 
       // Prevent running verification multiple times (React StrictMode double-renders)
       if (hasVerified.current) {
-        console.log('Verification already attempted, skipping...');
         return;
       }
       
@@ -34,12 +33,9 @@ const VerifyEmailPage: React.FC = () => {
         const response = await fetch(`${(import.meta as any).env.VITE_API_URL || 'http://localhost:5000'}/api/auth/verify-email/${token}`, {
           method: 'GET',
         });
-
-        console.log('Verification response status:', response.status);
         
         if (!response.ok) {
           const errorData = await response.json();
-          console.log('Verification error data:', errorData);
           setMessage('❌ Verification failed: ' + (errorData.message || 'Unknown error'));
           setIsSuccess(false);
           setVerifying(false);
@@ -47,7 +43,6 @@ const VerifyEmailPage: React.FC = () => {
         }
 
         const result = await response.json();
-        console.log('Verification result:', result);
         
         if (result.success) {
           setMessage('✅ Email verified successfully! You now have 5 free credits. Please login to continue.');
@@ -55,10 +50,8 @@ const VerifyEmailPage: React.FC = () => {
           
           // If user is already logged in, refresh their auth state
           const hasToken = authService.getToken();
-          console.log('Has auth token:', hasToken);
           
           if (hasToken) {
-            console.log('Refreshing auth state...');
             await checkAuth();
           }
           

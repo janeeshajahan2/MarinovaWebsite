@@ -88,10 +88,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = async (email: string, password: string): Promise<AuthResponse> => {
     try {
       const response = await authService.login({ email, password });
-      console.log('Login response:', response);
       
       if (response.success && response.user) {
-        console.log('Setting user state:', response.user);
         setUser({
           ...response.user,
           isEmailVerified: response.user.isEmailVerified ?? false,

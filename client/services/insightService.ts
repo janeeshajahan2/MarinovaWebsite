@@ -16,7 +16,6 @@ export const getMonthlyInsights = async (
   const ONE_DAY = 24 * 60 * 60 * 1000;
 
   if (cachedData && cachedTime && (now - parseInt(cachedTime) < ONE_DAY)) {
-    console.log('Using cached insights - no credit deduction');
     return JSON.parse(cachedData);
   }
 
