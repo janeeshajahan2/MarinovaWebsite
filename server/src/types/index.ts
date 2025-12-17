@@ -64,6 +64,12 @@ export interface UserResponse {
   isEmailVerified: boolean;
   subscriptionStatus: SubscriptionPlan;
   usageCredits: number;
+  monthlyCredits: {
+    weatherBrief: number;
+    researchLab: number;
+    chat: number;
+    insights: number;
+  };
   usageHistory?: UsageHistoryEntry[];
 }
 
