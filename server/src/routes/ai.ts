@@ -92,7 +92,7 @@ router.post('/generate-report', auth, async (req: Request, res: Response): Promi
  * POST /api/ai/generate-insights
  * Generate monthly ocean insights
  */
-router.post('/generate-insights', auth, async (req: Request, res: Response): Promise<void> => {
+router.post('/generate-insights', auth, async (_req: Request, res: Response): Promise<void> => {
   try {
     const insights = await aiService.generateMonthlyInsights();
 
