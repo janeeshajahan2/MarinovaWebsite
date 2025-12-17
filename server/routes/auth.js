@@ -285,4 +285,56 @@ router.post('/resend-verification', authMiddleware, async (req, res) => {
   }
 });
 
+// @route   GET /api/auth/verify-email/:token
+// @desc    Verify user email via GET link (for email verification links)
+// @access  Public
+router.get('/verify-email/:token', async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: 'Verification token is required'
+      });
+    }
+
+    // Find user with this verification token
+    const user = await User.findOne({ verificationToken: token });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid or expired verification token'
+      });
+    }
+
+    // Mark email as verified and reset verification token
+    user.isEmailVerified = true;
+    user.verificationToken = null;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully! You now have 5 free credits.',
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        email: user.email,
+        isEmailVerified: user.isEmailVerified,
+        subscriptionStatus: user.subscriptionStatus,
+        usageCredits: user.usageCredits,
+        monthlyCredits: user.monthlyCredits,
+        creditResetDate: user.creditResetDate.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Verify email error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error during verification'
+    });
+  }
+});
+
 module.exports = router;

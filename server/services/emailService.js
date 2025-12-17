@@ -53,7 +53,7 @@ const sendVerificationEmail = async (to, fullName, verificationToken) => {
             <div class="content">
               <p>Hi ${fullName},</p>
               <p>Thank you for signing up! We're excited to have you join our ocean intelligence platform.</p>
-              <p>To get started and unlock your <strong>3 free credits</strong>, please verify your email address by clicking the button below:</p>
+              <p>To get started and unlock your <strong>5 free credits</strong>, please verify your email address by clicking the button below:</p>
               <p style="text-align: center;">
                 <a href="${verificationLink}" class="button">Verify Email Address</a>
               </p>
@@ -63,7 +63,7 @@ const sendVerificationEmail = async (to, fullName, verificationToken) => {
               </p>
               <p><strong>What you get after verification:</strong></p>
               <ul>
-                <li>✅ 3 free uses of Forecast and Insights features</li>
+                <li>✅ 5 free uses of any features</li>
                 <li>✅ Access to real-time ocean data</li>
                 <li>✅ AI-powered weather analysis</li>
               </ul>
@@ -85,7 +85,7 @@ const sendVerificationEmail = async (to, fullName, verificationToken) => {
         Please verify your email address by clicking this link:
         ${verificationLink}
         
-        After verification, you'll get 3 free credits to use our Forecast and Insights features.
+        After verification, you'll get 5 free credits to use our features.
         
         If you didn't create this account, you can safely ignore this email.
         
