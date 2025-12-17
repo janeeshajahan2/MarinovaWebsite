@@ -16,10 +16,11 @@ import {
 } from 'lucide-react';
 import { ChatMessage, ChatAttachment } from '../types';
 import { sendMessageToGemini } from '../services/chatService';
-import { checkAndIncrementUsage } from '../services/usageService';
+import { useAuth } from '../context/AuthContext';
 import WeatherChart from './WeatherChart';
 
 const ChatPage: React.FC = () => {
+  const { trackUsage } = useAuth();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: '1',
@@ -118,7 +119,6 @@ const ChatPage: React.FC = () => {
   // Handle Send
   const handleSend = async () => {
     if (!inputText.trim() && attachments.length === 0) return;
-    if (!checkAndIncrementUsage()) return;
 
     const userMsg: ChatMessage = {
       id: Date.now().toString(),
@@ -134,7 +134,7 @@ const ChatPage: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const response = await sendMessageToGemini(messages, inputText, userMsg.attachments || []);
+      const response = await sendMessageToGemini(messages, inputText, userMsg.attachments || [], trackUsage);
       setMessages(prev => [...prev, response]);
     } catch (error) {
       console.error(error);

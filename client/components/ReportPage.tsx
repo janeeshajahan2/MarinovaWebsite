@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ResearchReport } from '../types';
 import { generateResearchReport } from '../services/reportService';
-import { checkAndIncrementUsage } from '../services/usageService';
+import { useAuth } from '../context/AuthContext';
 import { 
   Search, 
   BookOpen, 
@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 
 const ReportPage: React.FC = () => {
+  const { trackUsage } = useAuth();
   const [topic, setTopic] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<ResearchReport | null>(null);
@@ -24,13 +25,14 @@ const ReportPage: React.FC = () => {
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!topic.trim()) return;
-    if (!checkAndIncrementUsage()) return;
 
     setIsLoading(true);
     setReport(null);
     try {
-      const data = await generateResearchReport(topic);
-      setReport(data);
+      const data = await generateResearchReport(topic, trackUsage);
+      if (data) {
+        setReport(data);
+      }
     } catch (error) {
       console.error("Report generation failed", error);
     } finally {

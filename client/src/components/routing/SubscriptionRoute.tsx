@@ -17,17 +17,24 @@ const SubscriptionRoute: React.FC<SubscriptionRouteProps> = ({ children }) => {
     );
   }
 
+  // Not logged in - redirect to login
   if (!isAuthenticated) {
     sessionStorage.setItem('redirectAfterLogin', window.location.pathname);
     return <Navigate to="/?login=true" replace />;
   }
 
-  if (user && user.subscriptionStatus === 'free') {
-    // Store where they tried to go so they can return after subscribing
+  // Logged in but email not verified - redirect to dashboard with verification message
+  if (user && !user.isEmailVerified) {
+    return <Navigate to="/" replace />;
+  }
+
+  // Free tier with no credits - redirect to subscription
+  if (user && user.subscriptionStatus === 'free' && user.usageCredits <= 0) {
     sessionStorage.setItem('redirectAfterSubscription', window.location.pathname);
     return <Navigate to="/subscription" replace />;
   }
 
+  // All checks passed - allow access
   return <>{children}</>;
 };
 

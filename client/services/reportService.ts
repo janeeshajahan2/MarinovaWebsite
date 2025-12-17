@@ -3,12 +3,22 @@ import { authService } from './authService';
 
 const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000';
 
-export const generateResearchReport = async (topic: string): Promise<ResearchReport> => {
+export const generateResearchReport = async (
+  topic: string,
+  trackUsage: (feature: string) => Promise<{ success: boolean; message: string; requiresSubscription?: boolean }>
+): Promise<ResearchReport | null> => {
   try {
     const token = authService.getToken();
     
     if (!token) {
       throw new Error('Authentication required');
+    }
+
+    // Track usage BEFORE making AI call
+    const trackResult = await trackUsage('report');
+    if (!trackResult.success) {
+      console.error('Usage tracking failed:', trackResult.message);
+      return null;
     }
 
     const response = await fetch(`${API_URL}/api/ai/generate-report`, {
@@ -38,7 +48,7 @@ export const generateResearchReport = async (topic: string): Promise<ResearchRep
       generatedImage: undefined
     };
   } catch (error) {
-    console.error("Research report generation failed:", error);
+    console.error("Research report error:", error);
     throw error;
   }
 };

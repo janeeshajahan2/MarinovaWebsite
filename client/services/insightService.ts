@@ -5,7 +5,9 @@ const API_URL = (import.meta as any).env.VITE_API_URL || 'http://localhost:5000'
 const CACHE_KEY = 'marinova_insights_cache';
 const CACHE_TIMESTAMP_KEY = 'marinova_insights_ts';
 
-export const getMonthlyInsights = async (): Promise<OceanInsight[]> => {
+export const getMonthlyInsights = async (
+  trackUsage: (feature: string) => Promise<{ success: boolean; message: string; requiresSubscription?: boolean }>
+): Promise<OceanInsight[]> => {
   // 1. Check Local Storage Cache (valid for 24 hours)
   const cachedData = localStorage.getItem(CACHE_KEY);
   const cachedTime = localStorage.getItem(CACHE_TIMESTAMP_KEY);
@@ -14,6 +16,7 @@ export const getMonthlyInsights = async (): Promise<OceanInsight[]> => {
   const ONE_DAY = 24 * 60 * 60 * 1000;
 
   if (cachedData && cachedTime && (now - parseInt(cachedTime) < ONE_DAY)) {
+    console.log('Using cached insights - no credit deduction');
     return JSON.parse(cachedData);
   }
 
@@ -23,6 +26,13 @@ export const getMonthlyInsights = async (): Promise<OceanInsight[]> => {
     
     if (!token) {
       throw new Error('Authentication required');
+    }
+
+    //Track usage BEFORE making AI call (only if generating new insights)
+    const trackResult = await trackUsage('insights');
+    if (!trackResult.success) {
+      console.error('Usage tracking failed:', trackResult.message);
+      return [];
     }
 
     const response = await fetch(`${API_URL}/api/ai/generate-insights`, {

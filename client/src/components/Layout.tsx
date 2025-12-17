@@ -51,30 +51,78 @@ const Layout: React.FC = () => {
 
   const isActive = (path: string) => location.pathname === path;
 
-  // Helper to check if feature is locked based on credits
-  const isFeatureLocked = (feature: 'weatherBrief' | 'researchLab' | 'chat' | 'insights'): boolean => {
-    if (!isAuthenticated || !user) return true;
-    
-    // Check if email is verified first
-    if (!user.isEmailVerified) return true;
-    
-    // Free tier: check universal credits
-    if (user.subscriptionStatus === 'free') {
-      return user.usageCredits <= 0;
+  // Helper to determine lock reason and action
+  const getFeatureLockInfo = (feature: 'weatherBrief' | 'researchLab' | 'chat' | 'insights') => {
+    // Not logged in
+    if (!isAuthenticated || !user) {
+      return { locked: true, reason: 'login', message: 'Please sign in to access this feature' };
     }
-    
+
+    // Logged in but email not verified
+    if (!user.isEmailVerified) {
+      return { locked: true, reason: 'verify', message: 'Please verify your email to access features. Check your inbox!' };
+    }
+
+    // Free tier: check if has any credits
+    if (user.subscriptionStatus === 'free') {
+      if (user.usageCredits <= 0) {
+        return { locked: true, reason: 'subscribe', message: 'You have used all your credits. Please subscribe to continue.' };
+      }
+      return { locked: false, reason: null, message: null };
+    }
+
     // Paid tier: check feature-specific credits (-1 means unlimited)
     const featureCredit = user.monthlyCredits[feature];
-    return featureCredit !== -1 && featureCredit <= 0;
+    if (featureCredit !== -1 && featureCredit <= 0) {
+      return { locked: true, reason: 'subscribe', message: 'You have used all your monthly credits for this feature.' };
+    }
+
+    return { locked: false, reason: null, message: null };
+  };
+
+  // Simple check if feature is locked
+  const isFeatureLocked = (feature: 'weatherBrief' | 'researchLab' | 'chat' | 'insights'): boolean => {
+    return getFeatureLockInfo(feature).locked;
   };
 
   const navItems = [
     { path: '/', label: 'Dashboard', icon: LayoutDashboard, locked: false },
-    { path: '/forecast', label: 'Forecast', icon: Globe2, locked: !isAuthenticated || !user?.isEmailVerified },
+    { path: '/forecast', label: 'Forecast', icon: Globe2, locked: isFeatureLocked('weatherBrief') },
     { path: '/insights', label: 'Insights', icon: Sparkles, locked: isFeatureLocked('insights') },
     { path: '/research', label: 'Research Lab', icon: FlaskConical, locked: isFeatureLocked('researchLab') },
     { path: '/chat', label: 'Captain on Deck', icon: MessageSquare, locked: isFeatureLocked('chat') },
   ];
+
+  const handleNavClick = (path: string, locked: boolean) => {
+    if (!locked) {
+      navigate(path);
+      setIsMobileMenuOpen(false);
+      return;
+    }
+
+    // Determine which feature this path corresponds to
+    let feature: 'weatherBrief' | 'researchLab' | 'chat' | 'insights' = 'weatherBrief';
+    if (path === '/research') feature = 'researchLab';
+    else if (path === '/chat') feature = 'chat';
+    else if (path === '/insights') feature = 'insights';
+
+    const lockInfo = getFeatureLockInfo(feature);
+
+    if (lockInfo.reason === 'login') {
+      // Show login popup
+      sessionStorage.setItem('intendedDestination', path);
+      setShowLogin(true);
+    } else if (lockInfo.reason === 'verify') {
+      // Show verification reminder
+      alert(lockInfo.message + '\n\nA verification email was sent to your inbox when you signed up.');
+    } else if (lockInfo.reason === 'subscribe') {
+      // Redirect to subscription page
+      sessionStorage.setItem('intendedDestination', path);
+      navigate('/subscription');
+    }
+
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <div className="flex h-screen bg-[#0f172a] text-slate-50 font-sans overflow-hidden">
@@ -98,20 +146,19 @@ const Layout: React.FC = () => {
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
-              <Link
+              <button
                 key={item.path}
-                to={item.path}
+                onClick={() => handleNavClick(item.path, item.locked)}
                 className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-all ${
                   isActive(item.path)
                     ? 'bg-[#334155] text-white border-l-4 border-cyan-400' 
                     : 'text-slate-400 hover:bg-slate-800 hover:text-white'
                 }`}
-                onClick={() => setIsMobileMenuOpen(false)}
               >
                 <Icon className="w-5 h-5" />
                 <span className="font-medium flex-1 text-left">{item.label}</span>
                 {item.locked && <Lock className="w-4 h-4 text-slate-600" />}
-              </Link>
+              </button>
             );
           })}
         </nav>

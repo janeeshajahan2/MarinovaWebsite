@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { OceanInsight } from '../types';
 import { getMonthlyInsights } from '../services/insightService';
+import { useAuth } from '../context/AuthContext';
 import { 
   Loader2, 
   TrendingUp, 
@@ -16,6 +17,7 @@ import {
 } from 'lucide-react';
 
 const InsightPage: React.FC = () => {
+  const { trackUsage } = useAuth();
   const [insights, setInsights] = useState<OceanInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'All' | 'Critical' | 'Prediction'>('All');
@@ -24,12 +26,12 @@ const InsightPage: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      const data = await getMonthlyInsights();
+      const data = await getMonthlyInsights(trackUsage);
       setInsights(data);
       setLoading(false);
     };
     loadData();
-  }, []);
+  }, [trackUsage]);
 
   const todayStr = new Date().toISOString().split('T')[0];
   
